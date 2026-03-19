@@ -20,12 +20,15 @@ There is no build step, no dev server, and no package manager.
 
 This repo is connected to GitHub at `https://github.com/SHENYOUWEST/ClaudeCodeTest01`.
 
-After every meaningful change:
+**REQUIRED:** After every meaningful unit of work (new feature, bug fix, refactor, new file), commit and push immediately. Never leave completed work uncommitted. This ensures no progress is lost and the GitHub remote always reflects the current state.
+
 ```bash
 git add <specific files>
 git commit -m "feat/fix/refactor: clear description"
 git push
 ```
+
+Commit message format: `type: short description` where type is `feat`, `fix`, `refactor`, or `docs`.
 
 The system uses a proxy on `127.0.0.1:7890` (Clash/V2Ray). If `git push` fails with a connection error, the proxy may be off — ask the user to start it before retrying.
 
