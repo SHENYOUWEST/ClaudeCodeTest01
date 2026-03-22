@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Development Portfolio</title>
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    /* ── Design System ── */
+    :root {
+      --black: #0a0a0a;
+      --white: #f5f5f0;
+      --gray-100: #e8e8e3;
+      --gray-200: #d0d0cb;
+      --gray-400: #8a8a85;
+      --gray-600: #5a5a55;
+      --gray-800: #2a2a25;
+      --border: 1px solid var(--gray-200);
+      --border-dark: 1px solid var(--gray-400);
+      --font-heading: 'Georgia', 'Times New Roman', 'Noto Serif', serif;
+      --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 16px;
+      --space-lg: 32px;
+      --space-xl: 64px;
+      --space-2xl: 96px;
+      --max-width: 1200px;
+      --nav-height: 60px;
+      --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+      --duration: 0.3s;
+    }
+
+    body {
+      font-family: var(--font-body);
+      color: var(--black);
+      background: var(--white);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+
+    /* ── Reveal Animation ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── Navigation ── */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--nav-height);
+      background: var(--white);
+      border-bottom: var(--border);
+      z-index: 100;
+      transition: box-shadow var(--duration) var(--ease);
+    }
+    .nav.scrolled {
+      box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+    }
+    .nav-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 var(--space-lg);
+      position: relative;
+    }
+    .nav-links {
+      display: flex;
+      gap: var(--space-lg);
+    }
+    .nav-links a {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-weight: 400;
+      color: var(--gray-600);
+      transition: color var(--duration);
+      white-space: nowrap;
+    }
+    .nav-links a:hover {
+      color: var(--black);
+    }
+    .nav-logo {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      letter-spacing: 0.3em;
+      margin: 0 var(--space-xl);
+      font-weight: 400;
+      color: var(--black);
+      flex-shrink: 0;
+    }
+    .nav-toggle {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      width: 28px;
+      height: 20px;
+      position: absolute;
+      right: var(--space-lg);
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .nav-toggle span {
+      display: block;
+      width: 100%;
+      height: 1px;
+      background: var(--black);
+      transition: transform var(--duration), opacity var(--duration);
+    }
+    .nav-toggle.active span:first-child {
+      transform: translateY(9.5px) rotate(45deg);
+    }
+    .nav-toggle.active span:last-child {
+      transform: translateY(-9.5px) rotate(-45deg);
+    }
+
+    /* ── Mobile Nav Overlay ── */
+    .nav-mobile {
+      display: none;
+      position: fixed;
+      top: var(--nav-height);
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--white);
+      z-index: 99;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-lg);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--duration);
+    }
+    .nav-mobile.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .nav-mobile a {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--gray-600);
+    }
+    .nav-mobile a:hover { color: var(--black); }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh;
+      padding: calc(var(--nav-height) + var(--space-2xl)) var(--space-lg) var(--space-xl);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .hero-content {
+      max-width: 700px;
+      margin-bottom: var(--space-xl);
+    }
+    .hero h1 {
+      font-family: var(--font-heading);
+      font-size: clamp(36px, 6vw, 72px);
+      font-weight: 400;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      margin-bottom: var(--space-lg);
+    }
+    .hero p {
+      font-size: clamp(16px, 2vw, 19px);
+      color: var(--gray-600);
+      max-width: 480px;
+      margin: 0 auto var(--space-lg);
+      line-height: 1.7;
+    }
+    .hero-buttons {
+      display: flex;
+      gap: var(--space-md);
+      justify-content: center;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 32px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      border: 1px solid var(--black);
+      transition: background var(--duration), color var(--duration);
+    }
+    .btn-primary {
+      background: var(--black);
+      color: var(--white);
+    }
+    .btn-primary:hover {
+      background: var(--gray-800);
+    }
+    .btn-secondary {
+      background: transparent;
+      color: var(--black);
+    }
+    .btn-secondary:hover {
+      background: var(--black);
+      color: var(--white);
+    }
+    .hero-canvas-wrapper {
+      width: 100%;
+      max-width: var(--max-width);
+      aspect-ratio: 16 / 7;
+      border: var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-canvas-wrapper canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ── Marquee ── */
+    .marquee {
+      background: var(--black);
+      color: var(--white);
+      border-top: var(--border);
+      border-bottom: var(--border);
+      overflow: hidden;
+      padding: 12px 0;
+      white-space: nowrap;
+    }
+    .marquee-inner {
+      display: inline-flex;
+      animation: marquee 25s linear infinite;
+    }
+    .marquee-text {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      padding-right: 60px;
+    }
+    @keyframes marquee {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* ── Shared Feature Section ── */
+    .feature-section {
+      padding: var(--space-2xl) var(--space-lg);
+      border-bottom: var(--border);
+    }
+    .feature-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+    }
+    .feature-number {
+      font-family: var(--font-heading);
+      font-size: clamp(48px, 8vw, 96px);
+      color: var(--gray-200);
+      line-height: 1;
+      margin-bottom: var(--space-lg);
+      font-weight: 400;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-xl);
+      margin-bottom: var(--space-xl);
+    }
+    .feature-text h2 {
+      font-family: var(--font-heading);
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 400;
+      margin-bottom: var(--space-md);
+      line-height: 1.15;
+    }
+    .feature-subtitle {
+      font-size: clamp(16px, 2vw, 19px);
+      color: var(--gray-600);
+      margin-bottom: var(--space-lg);
+      line-height: 1.6;
+    }
+    .feature-body {
+      color: var(--gray-600);
+      font-size: 15px;
+      line-height: 1.7;
+      max-width: 520px;
+    }
+    .feature-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+    }
+    .feature-tags span {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 6px 14px;
+      border: var(--border);
+      color: var(--gray-600);
+    }
+
+    /* ── Terminal Mockup ── */
+    .terminal {
+      background: var(--black);
+      border: var(--border);
+      overflow: hidden;
+    }
+    .terminal-bar {
+      display: flex;
+      gap: 6px;
+      padding: 12px 16px;
+      border-bottom: 1px solid #2a2a2a;
+    }
+    .terminal-bar span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1px solid #444;
+    }
+    .terminal-body {
+      padding: 20px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.9;
+      color: #c8c8c0;
+    }
+    .terminal-line {
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 0.4s var(--ease), transform 0.4s var(--ease);
+    }
+    .terminal.animate .terminal-line {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .terminal.animate .terminal-line:nth-child(1) { transition-delay: 0.1s; }
+    .terminal.animate .terminal-line:nth-child(2) { transition-delay: 0.5s; }
+    .terminal.animate .terminal-line:nth-child(3) { transition-delay: 0.9s; }
+    .terminal.animate .terminal-line:nth-child(4) { transition-delay: 1.4s; }
+    .terminal.animate .terminal-line:nth-child(5) { transition-delay: 1.7s; }
+    .terminal.animate .terminal-line:nth-child(6) { transition-delay: 2.0s; }
+    .terminal-line.dim { color: #6a6a65; }
+    .terminal-line.success { color: #8ab88a; }
+    .terminal-line .prompt { color: #8ab88a; }
+
+    /* ── MCP Diagram ── */
+    .mcp-diagram {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1;
+      max-width: 360px;
+      margin: 0 auto;
+    }
+    .mcp-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 64px;
+      height: 64px;
+      border: var(--border-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-heading);
+      font-size: 18px;
+      background: var(--white);
+      z-index: 2;
+    }
+    .mcp-node {
+      position: absolute;
+      width: 48px;
+      height: 48px;
+      border: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: var(--white);
+      z-index: 2;
+      transition: border-color var(--duration);
+    }
+    .mcp-node:hover {
+      border-color: var(--black);
+    }
+    .mcp-line {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      height: 1px;
+      background: var(--gray-200);
+      transform-origin: 0 0;
+      z-index: 1;
+    }
+    .mcp-node-label {
+      position: absolute;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--gray-400);
+      white-space: nowrap;
+    }
+
+    /* ── Integration Row ── */
+    .integration-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-lg);
+      justify-content: center;
+      padding-top: var(--space-lg);
+    }
+    .integration-icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+    .integration-icon .icon-box {
+      width: 48px;
+      height: 48px;
+      border: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      transition: border-color var(--duration);
+    }
+    .integration-icon:hover .icon-box {
+      border-color: var(--black);
+    }
+    .integration-icon .icon-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--gray-400);
+    }
+
+    /* ── Agent Canvas ── */
+    .agent-canvas-wrapper {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      border: var(--border);
+      position: relative;
+      overflow: hidden;
+      max-width: 480px;
+    }
+    .agent-canvas-wrapper canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ── Agent Cards ── */
+    .agent-cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-md);
+    }
+    .agent-card {
+      border: var(--border);
+      padding: var(--space-lg);
+      transition: box-shadow var(--duration);
+    }
+    .agent-card:hover {
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .agent-card h3 {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 400;
+      margin-bottom: var(--space-sm);
+    }
+    .agent-card p {
+      font-size: 14px;
+      color: var(--gray-600);
+      line-height: 1.6;
+    }
+
+    /* ── Section (generic) ── */
+    .section {
+      padding: var(--space-2xl) var(--space-lg);
+      border-bottom: var(--border);
+    }
+    .section-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+    }
+    .section-narrow {
+      max-width: 640px;
+    }
+    .section h2 {
+      font-family: var(--font-heading);
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 400;
+      margin-bottom: var(--space-lg);
+      line-height: 1.15;
+    }
+    .section p {
+      color: var(--gray-600);
+      font-size: 15px;
+      line-height: 1.7;
+      margin-bottom: var(--space-md);
+    }
+
+    /* ── Projects Grid ── */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-md);
+    }
+    .project-card {
+      display: block;
+      border: var(--border);
+      padding: var(--space-lg);
+      transition: box-shadow var(--duration);
+    }
+    .project-card:hover {
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .project-card h3 {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      font-weight: 400;
+      margin-bottom: var(--space-sm);
+    }
+    .project-card p {
+      color: var(--gray-600);
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: var(--space-md);
+    }
+    .project-link {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--black);
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: var(--space-xl) var(--space-lg);
+    }
+    .footer-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+    }
+    .footer-contact {
+      margin-bottom: var(--space-xl);
+    }
+    .footer-contact h2 {
+      font-family: var(--font-heading);
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 400;
+      margin-bottom: var(--space-md);
+    }
+    .footer-contact a {
+      font-size: 14px;
+      color: var(--gray-600);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .footer-contact a:hover { color: var(--black); }
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+      padding-top: var(--space-lg);
+      border-top: var(--border);
+      font-size: 12px;
+      color: var(--gray-400);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── Responsive: Tablet ── */
+    @media (min-width: 768px) {
+      .feature-grid {
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+      }
+      .feature-section--reversed .feature-grid {
+        direction: rtl;
+      }
+      .feature-section--reversed .feature-grid > * {
+        direction: ltr;
+      }
+      .agent-cards {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .projects-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    /* ── Responsive: Desktop ── */
+    @media (min-width: 1024px) {
+      .nav-links { display: flex; }
+      .feature-section {
+        padding: var(--space-2xl) var(--space-lg);
+      }
+    }
+
+    /* ── Responsive: Mobile ── */
+    @media (max-width: 767px) {
+      .nav-links { display: none; }
+      .nav-toggle { display: flex; }
+      .nav-mobile { display: flex; }
+      .nav-logo { margin: 0; }
+      .nav-inner { justify-content: center; }
+      .hero {
+        padding-top: calc(var(--nav-height) + var(--space-xl));
+      }
+      .hero-canvas-wrapper {
+        aspect-ratio: 16 / 9;
+      }
+      .feature-number {
+        font-size: 56px;
+      }
+      .mcp-diagram {
+        max-width: 280px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="nav-links nav-left">
+        <a href="#claude-code">Claude Code</a>
+        <a href="#mcp">MCP</a>
+        <a href="#agents">Agents</a>
+      </div>
+      <a href="#hero" class="nav-logo">AI</a>
+      <div class="nav-links nav-right">
+        <a href="#about">About</a>
+        <a href="#projects">Projects</a>
+        <a href="#contact">Contact</a>
+      </div>
+      <button class="nav-toggle" aria-label="Menu">
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Nav Overlay -->
+  <div class="nav-mobile">
+    <a href="#claude-code">Claude Code</a>
+    <a href="#mcp">MCP</a>
+    <a href="#agents">Agents</a>
+    <a href="#about">About</a>
+    <a href="#projects">Projects</a>
+    <a href="#contact">Contact</a>
+  </div>
+
+  <!-- Hero -->
+  <section id="hero" class="hero">
+    <div class="hero-content reveal">
+      <h1>The Future of Development is Agentic</h1>
+      <p>AI-powered tools that understand, create, and iterate alongside you.</p>
+      <div class="hero-buttons">
+        <a href="#claude-code" class="btn btn-primary">Explore</a>
+        <a href="#contact" class="btn btn-secondary">Contact</a>
+      </div>
+    </div>
+    <div class="hero-canvas-wrapper reveal">
+      <canvas id="hero-canvas"></canvas>
+    </div>
+  </section>
+
+  <!-- Marquee -->
+  <div class="marquee">
+    <div class="marquee-inner">
+      <span class="marquee-text">Claude Code &middot; Model Context Protocol &middot; AI Agents &middot; Build the Future &middot; Agentic Development &middot; Tool Use &middot; Autonomous Systems &middot;&nbsp;</span>
+      <span class="marquee-text">Claude Code &middot; Model Context Protocol &middot; AI Agents &middot; Build the Future &middot; Agentic Development &middot; Tool Use &middot; Autonomous Systems &middot;&nbsp;</span>
+    </div>
+  </div>
+
+  <!-- Claude Code -->
+  <section id="claude-code" class="feature-section">
+    <div class="feature-inner">
+      <div class="feature-number reveal">01</div>
+      <div class="feature-grid">
+        <div class="feature-text reveal">
+          <h2>Claude Code</h2>
+          <p class="feature-subtitle">The intelligent CLI for AI-assisted development.</p>
+          <p class="feature-body">Your AI pair programmer that lives in the terminal. It reads your entire codebase, understands your architecture, writes and edits code across multiple files, runs commands and tests, handles git operations &mdash; all through natural language conversation.</p>
+        </div>
+        <div class="feature-visual reveal">
+          <div class="terminal" id="terminal-demo">
+            <div class="terminal-bar"><span></span><span></span><span></span></div>
+            <div class="terminal-body">
+              <div class="terminal-line"><span class="prompt">$</span> claude "add dark mode to settings"</div>
+              <div class="terminal-line dim">Analyzing codebase...</div>
+              <div class="terminal-line dim">Found 3 files to modify</div>
+              <div class="terminal-line success">&#10003; Updated theme.js</div>
+              <div class="terminal-line success">&#10003; Updated settings.css</div>
+              <div class="terminal-line success">&#10003; Updated App.jsx</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="feature-tags reveal">
+        <span>Codebase Understanding</span>
+        <span>Multi-file Editing</span>
+        <span>Test Execution</span>
+        <span>Git Integration</span>
+        <span>Natural Language</span>
+        <span>CLAUDE.md Config</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- MCP -->
+  <section id="mcp" class="feature-section feature-section--reversed">
+    <div class="feature-inner">
+      <div class="feature-number reveal">02</div>
+      <div class="feature-grid">
+        <div class="feature-visual reveal">
+          <div class="mcp-diagram" id="mcp-diagram">
+            <div class="mcp-center">AI</div>
+            <!-- Nodes and lines rendered by JS -->
+          </div>
+        </div>
+        <div class="feature-text reveal">
+          <h2>Model Context Protocol</h2>
+          <p class="feature-subtitle">The universal standard for connecting AI to everything.</p>
+          <p class="feature-body">An open protocol that replaces fragmented integrations with a single standard. Connect AI assistants to content repositories, business tools, and development environments. Standardized, secure, composable, and interoperable.</p>
+        </div>
+      </div>
+      <div class="integration-row reveal">
+        <div class="integration-icon">
+          <div class="icon-box">GH</div>
+          <span class="icon-label">GitHub</span>
+        </div>
+        <div class="integration-icon">
+          <div class="icon-box">SL</div>
+          <span class="icon-label">Slack</span>
+        </div>
+        <div class="integration-icon">
+          <div class="icon-box">GD</div>
+          <span class="icon-label">Drive</span>
+        </div>
+        <div class="integration-icon">
+          <div class="icon-box">JR</div>
+          <span class="icon-label">Jira</span>
+        </div>
+        <div class="integration-icon">
+          <div class="icon-box">DB</div>
+          <span class="icon-label">Database</span>
+        </div>
+        <div class="integration-icon">
+          <div class="icon-box">FS</div>
+          <span class="icon-label">Files</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Agents -->
+  <section id="agents" class="feature-section">
+    <div class="feature-inner">
+      <div class="feature-number reveal">03</div>
+      <div class="feature-grid">
+        <div class="feature-text reveal">
+          <h2>Agents</h2>
+          <p class="feature-subtitle">Autonomous AI systems that handle complex tasks end-to-end.</p>
+          <p class="feature-body">Agents operate in a powerful feedback loop: gather context, take action, verify work, repeat. Built with the Claude Agent SDK, they can evaluate investments, conduct deep research, manage customer support, and handle any high-ambiguity task that requires reasoning and tool use.</p>
+        </div>
+        <div class="feature-visual reveal">
+          <div class="agent-canvas-wrapper">
+            <canvas id="agent-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="agent-cards reveal">
+        <div class="agent-card">
+          <h3>Finance</h3>
+          <p>Evaluate investments and analyze markets automatically with real-time data.</p>
+        </div>
+        <div class="agent-card">
+          <h3>Research</h3>
+          <p>Deep research across multiple sources, synthesizing insights at scale.</p>
+        </div>
+        <div class="agent-card">
+          <h3>Support</h3>
+          <p>Handle complex user requests with full context and intelligent escalation.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Projects -->
+  <section id="projects" class="section">
+    <div class="section-inner">
+      <h2 class="reveal">Projects</h2>
+      <div class="projects-grid">
+        <a href="../shooter/index.html" class="project-card reveal">
+          <h3>Retro Shooter</h3>
+          <p>Canvas-based top-down shooter with multiple enemy types, particle effects, and level progression.</p>
+          <span class="project-link">Play &rarr;</span>
+        </a>
+        <a href="../tictactoe.html" class="project-card reveal">
+          <h3>Tic-Tac-Toe</h3>
+          <p>Classic grid game with score tracking, animated feedback, and a clean dark interface.</p>
+          <span class="project-link">Play &rarr;</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="about" class="section">
+    <div class="section-inner section-narrow reveal">
+      <h2>About</h2>
+      <p>This portfolio explores the intersection of artificial intelligence and software development. Built entirely with vanilla HTML5, CSS, and JavaScript &mdash; no frameworks, no dependencies, no build tools.</p>
+      <p>Every project is a single self-contained HTML file that runs directly in the browser.</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer id="contact" class="footer">
+    <div class="footer-inner">
+      <div class="footer-contact reveal">
+        <h2>Get In Touch</h2>
+        <a href="https://github.com/SHENYOUWEST/ClaudeCodeTest01" target="_blank" rel="noopener">GitHub &rarr;</a>
+      </div>
+      <div class="footer-bottom">
+        <span>AI Development Portfolio &middot; 2026</span>
+        <span>Built with vanilla HTML, CSS &amp; JS</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* ══════════════════════════════════════════
+       Hero Particle Network Animation
+       ══════════════════════════════════════════ */
+    (function() {
+      const canvas = document.getElementById('hero-canvas');
+      const ctx = canvas.getContext('2d');
+      const isMobile = window.innerWidth < 768;
+      const NODE_COUNT = isMobile ? 25 : 45;
+      const CONNECT_DIST = isMobile ? 100 : 130;
+      let W, H, mouse = { x: -1000, y: -1000 };
+      const nodes = [];
+
+      function resize() {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        W = rect.width;
+        H = rect.height;
+        canvas.width = W * devicePixelRatio;
+        canvas.height = H * devicePixelRatio;
+        ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+      }
+
+      function init() {
+        resize();
+        for (let i = 0; i < NODE_COUNT; i++) {
+          nodes.push({
+            x: Math.random() * W,
+            y: Math.random() * H,
+            vx: (Math.random() - 0.5) * 0.4,
+            vy: (Math.random() - 0.5) * 0.4,
+            r: 1.5 + Math.random() * 1.5
+          });
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+
+        // Draw connections
+        ctx.strokeStyle = 'rgba(10,10,10,0.08)';
+        ctx.lineWidth = 0.5;
+        for (let i = 0; i < nodes.length; i++) {
+          for (let j = i + 1; j < nodes.length; j++) {
+            const dx = nodes[i].x - nodes[j].x;
+            const dy = nodes[i].y - nodes[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < CONNECT_DIST) {
+              const alpha = 1 - dist / CONNECT_DIST;
+              ctx.strokeStyle = 'rgba(10,10,10,' + (alpha * 0.12) + ')';
+              ctx.beginPath();
+              ctx.moveTo(nodes[i].x, nodes[i].y);
+              ctx.lineTo(nodes[j].x, nodes[j].y);
+              ctx.stroke();
+            }
+          }
+        }
+
+        // Draw and update nodes
+        for (const n of nodes) {
+          // Mouse interaction
+          const mdx = n.x - mouse.x;
+          const mdy = n.y - mouse.y;
+          const md = Math.sqrt(mdx * mdx + mdy * mdy);
+          if (md < 100 && md > 0) {
+            const force = (100 - md) / 100 * 0.3;
+            n.vx += (mdx / md) * force;
+            n.vy += (mdy / md) * force;
+          }
+
+          n.x += n.vx;
+          n.y += n.vy;
+          n.vx *= 0.99;
+          n.vy *= 0.99;
+
+          // Bounce off edges
+          if (n.x < 0 || n.x > W) n.vx *= -1;
+          if (n.y < 0 || n.y > H) n.vy *= -1;
+          n.x = Math.max(0, Math.min(W, n.x));
+          n.y = Math.max(0, Math.min(H, n.y));
+
+          ctx.fillStyle = 'rgba(10,10,10,0.35)';
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        requestAnimationFrame(draw);
+      }
+
+      canvas.parentElement.addEventListener('mousemove', function(e) {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        mouse.x = e.clientX - rect.left;
+        mouse.y = e.clientY - rect.top;
+      });
+      canvas.parentElement.addEventListener('mouseleave', function() {
+        mouse.x = -1000;
+        mouse.y = -1000;
+      });
+
+      new ResizeObserver(resize).observe(canvas.parentElement);
+      init();
+      draw();
+    })();
+
+    /* ══════════════════════════════════════════
+       Agent Workflow Loop Animation
+       ══════════════════════════════════════════ */
+    (function() {
+      const canvas = document.getElementById('agent-canvas');
+      const ctx = canvas.getContext('2d');
+      let W, H, t = 0;
+      const labels = ['Gather Context', 'Take Action', 'Verify Work', 'Iterate'];
+
+      function resize() {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        W = rect.width;
+        H = rect.height;
+        canvas.width = W * devicePixelRatio;
+        canvas.height = H * devicePixelRatio;
+        ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+      }
+
+      function getNodePos(i) {
+        const cx = W / 2, cy = H / 2;
+        const r = Math.min(W, H) * 0.32;
+        const angle = -Math.PI / 2 + (i / 4) * Math.PI * 2;
+        return { x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r };
+      }
+
+      function draw() {
+        t += 0.004;
+        ctx.clearRect(0, 0, W, H);
+
+        const cx = W / 2, cy = H / 2;
+        const r = Math.min(W, H) * 0.32;
+
+        // Draw connecting lines
+        ctx.strokeStyle = 'rgba(10,10,10,0.12)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 4; i++) {
+          const a = getNodePos(i);
+          const b = getNodePos((i + 1) % 4);
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+
+        // Draw arrows on lines
+        ctx.fillStyle = 'rgba(10,10,10,0.2)';
+        for (let i = 0; i < 4; i++) {
+          const a = getNodePos(i);
+          const b = getNodePos((i + 1) % 4);
+          const mx = (a.x + b.x) / 2;
+          const my = (a.y + b.y) / 2;
+          const angle = Math.atan2(b.y - a.y, b.x - a.x);
+          ctx.save();
+          ctx.translate(mx, my);
+          ctx.rotate(angle);
+          ctx.beginPath();
+          ctx.moveTo(5, 0);
+          ctx.lineTo(-3, -3);
+          ctx.lineTo(-3, 3);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // Draw label nodes
+        const fontSize = Math.max(10, Math.min(13, W * 0.028));
+        ctx.font = '400 ' + fontSize + 'px ' + getComputedStyle(document.documentElement).getPropertyValue('--font-body');
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        for (let i = 0; i < 4; i++) {
+          const pos = getNodePos(i);
+          const tw = ctx.measureText(labels[i]).width + 24;
+          const th = 32;
+
+          ctx.fillStyle = 'var(--white)';
+          ctx.fillStyle = '#f5f5f0';
+          ctx.fillRect(pos.x - tw / 2, pos.y - th / 2, tw, th);
+          ctx.strokeStyle = 'rgba(10,10,10,0.15)';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(pos.x - tw / 2, pos.y - th / 2, tw, th);
+
+          ctx.fillStyle = '#0a0a0a';
+          ctx.fillText(labels[i], pos.x, pos.y);
+        }
+
+        // Draw traveling dot
+        const progress = (t % 1);
+        const segment = Math.floor(progress * 4);
+        const segProgress = (progress * 4) % 1;
+        const a = getNodePos(segment);
+        const b = getNodePos((segment + 1) % 4);
+        const dotX = a.x + (b.x - a.x) * segProgress;
+        const dotY = a.y + (b.y - a.y) * segProgress;
+
+        // Glow
+        ctx.fillStyle = 'rgba(10,10,10,0.06)';
+        ctx.beginPath();
+        ctx.arc(dotX, dotY, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#0a0a0a';
+        ctx.beginPath();
+        ctx.arc(dotX, dotY, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        requestAnimationFrame(draw);
+      }
+
+      new ResizeObserver(resize).observe(canvas.parentElement);
+      resize();
+      draw();
+    })();
+
+    /* ══════════════════════════════════════════
+       MCP Hub-and-Spoke Diagram
+       ══════════════════════════════════════════ */
+    (function() {
+      const diagram = document.getElementById('mcp-diagram');
+      const nodeData = [
+        { label: 'GH', name: 'GitHub' },
+        { label: 'SL', name: 'Slack' },
+        { label: 'GD', name: 'Drive' },
+        { label: 'JR', name: 'Jira' },
+        { label: 'DB', name: 'Database' },
+        { label: 'FS', name: 'Files' }
+      ];
+
+      const w = diagram.offsetWidth;
+      const h = diagram.offsetHeight;
+      const cx = w / 2, cy = h / 2;
+      const r = Math.min(w, h) * 0.38;
+
+      nodeData.forEach(function(nd, i) {
+        const angle = -Math.PI / 2 + (i / nodeData.length) * Math.PI * 2;
+        const x = cx + Math.cos(angle) * r;
+        const y = cy + Math.sin(angle) * r;
+
+        // Line from center to node
+        const line = document.createElement('div');
+        line.className = 'mcp-line';
+        const dx = x - cx, dy = y - cy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const lineAngle = Math.atan2(dy, dx);
+        line.style.width = dist + 'px';
+        line.style.transform = 'rotate(' + lineAngle + 'rad)';
+        diagram.appendChild(line);
+
+        // Node
+        const node = document.createElement('div');
+        node.className = 'mcp-node';
+        node.style.left = (x - 24) + 'px';
+        node.style.top = (y - 24) + 'px';
+        node.textContent = nd.label;
+        diagram.appendChild(node);
+
+        // Label
+        const lbl = document.createElement('div');
+        lbl.className = 'mcp-node-label';
+        lbl.textContent = nd.name;
+        lbl.style.left = (x - 24) + 'px';
+        lbl.style.top = (y + 28) + 'px';
+        diagram.appendChild(lbl);
+      });
+    })();
+
+    /* ══════════════════════════════════════════
+       Scroll Reveal + Terminal Animation
+       ══════════════════════════════════════════ */
+    (function() {
+      var revealObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+      document.querySelectorAll('.reveal').forEach(function(el) {
+        revealObserver.observe(el);
+      });
+
+      // Terminal typing trigger
+      var terminalObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('animate');
+            terminalObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.3 });
+
+      var terminal = document.getElementById('terminal-demo');
+      if (terminal) terminalObserver.observe(terminal);
+    })();
+
+    /* ══════════════════════════════════════════
+       Navigation: Smooth Scroll + Mobile Toggle + Scroll Effect
+       ══════════════════════════════════════════ */
+    (function() {
+      // Smooth scroll
+      document.querySelectorAll('a[href^="#"]').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+          var href = this.getAttribute('href');
+          if (href === '#') return;
+          var target = document.querySelector(href);
+          if (target) {
+            e.preventDefault();
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Close mobile nav if open
+            document.querySelector('.nav-mobile').classList.remove('open');
+            document.querySelector('.nav-toggle').classList.remove('active');
+          }
+        });
+      });
+
+      // Mobile toggle
+      var toggle = document.querySelector('.nav-toggle');
+      var mobileNav = document.querySelector('.nav-mobile');
+      toggle.addEventListener('click', function() {
+        mobileNav.classList.toggle('open');
+        toggle.classList.toggle('active');
+      });
+
+      // Nav scroll effect
+      var nav = document.querySelector('.nav');
+      window.addEventListener('scroll', function() {
+        nav.classList.toggle('scrolled', window.scrollY > 10);
+      }, { passive: true });
+    })();
+  </script>
+</body>
+</html>
