@@ -1,0 +1,82 @@
+<!-- game/tests/test.html -->
+<!DOCTYPE html>
+<html>
+<head><title>BH Tests</title>
+<style>
+  body { font-family: monospace; background: #111; color: #eee; padding: 20px; }
+  .pass { color: #4f4; } .fail { color: #f44; }
+</style>
+</head>
+<body>
+<h2>Bauhaus Bullet — Tests</h2>
+<pre id="log"></pre>
+<script>
+window.BH = window.BH || {};
+let passed = 0, failed = 0;
+function assert(desc, condition) {
+  const el = document.getElementById('log');
+  if (condition) { passed++; el.innerHTML += `<span class="pass">✓ ${desc}</span>\n`; }
+  else { failed++; el.innerHTML += `<span class="fail">✗ ${desc}</span>\n`; }
+}
+function summary() {
+  const el = document.getElementById('log');
+  el.innerHTML += `\n${passed} passed, ${failed} failed\n`;
+}
+</script>
+<script src="../player.js"></script>
+<script>
+// Player tests
+const p = new BH.Player(400, 300);
+
+assert('initial HP is 10', p.hp === 10);
+assert('initial position', p.x === 400 && p.y === 300);
+assert('not invincible initially', p.invincible === false);
+
+p.setTarget(500, 300);
+assert('target set', p.targetX === 500 && p.targetY === 300);
+
+p.takeDamage();
+assert('HP after damage is 9', p.hp === 9);
+assert('invincible after damage', p.invincible === true);
+
+p.invincible = true;
+p.takeDamage();
+assert('no damage while invincible', p.hp === 9);
+
+p.hp = 1;
+p.healAfterBerserk();
+assert('HP heals +5 from 1 to 6 after berserk', p.hp === 6);
+
+p.hp = 8;
+p.healAfterBerserk();
+assert('HP heals to max (10) when overflow', p.hp === 10);
+
+p.hp = 0;
+assert('isDead when HP is 0', p.isDead());
+</script>
+<script src="../phase.js"></script>
+<script>
+// Phase tests
+const ph = new BH.Phase();
+
+assert('starts in normal phase', ph.current === 'normal');
+assert('normal duration is 30', ph.normalDuration === 30);
+assert('berserk duration is 12', ph.berserkDuration === 12);
+
+ph.elapsed = 30;
+ph.update(0.1);
+assert('switches to berserk at 30s', ph.current === 'berserk');
+assert('elapsed resets on switch', ph.elapsed < 1);
+
+ph.elapsed = 12;
+ph.update(0.1);
+assert('switches back to normal at 12s', ph.current === 'normal');
+assert('berserkJustEnded flag set', ph.berserkJustEnded === true);
+
+ph.update(0.1);
+assert('berserkJustEnded cleared next frame', ph.berserkJustEnded === false);
+
+summary();
+</script>
+</body>
+</html>

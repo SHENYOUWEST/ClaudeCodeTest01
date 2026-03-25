@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>表面细节技术调研报告</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #fafaf9;
+    --surface: #ffffff;
+    --surface-alt: #f5f5f0;
+    --border: #e8e6e1;
+    --border-light: #f0eeea;
+    --text: #1a1a1a;
+    --text-secondary: #5c5c5c;
+    --text-muted: #8a8a8a;
+    --accent: #2d5a27;
+    --accent-light: #e8f0e6;
+    --accent-dark: #1e3d1a;
+    --blender: #e87d0d;
+    --blender-light: #fef3e8;
+    --blender-border: #f5c99d;
+    --ue5: #0d6efd;
+    --ue5-light: #e8f0fe;
+    --ue5-border: #9dc3f5;
+    --tag-green: #dcfce7;
+    --tag-green-text: #166534;
+    --tag-amber: #fef3c7;
+    --tag-amber-text: #92400e;
+    --tag-red: #fee2e2;
+    --tag-red-text: #991b1b;
+    --tag-blue: #dbeafe;
+    --tag-blue-text: #1e40af;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { font-size: 15px; scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Cover ── */
+  .cover {
+    min-height: 45vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 80px 40px 60px;
+    background: linear-gradient(160deg, #1a1a1a 0%, #2d3a2a 40%, #1e3d1a 100%);
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .cover-badge {
+    display: inline-block;
+    padding: 6px 20px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 100px;
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 28px;
+    position: relative;
+  }
+  .cover h1 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 2.8rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: 1.3;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .cover-sub {
+    font-size: 1.05rem;
+    color: rgba(255,255,255,0.6);
+    font-weight: 300;
+    position: relative;
+  }
+  .cover-meta {
+    margin-top: 32px;
+    display: flex;
+    gap: 24px;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.45);
+    position: relative;
+  }
+
+  /* ── TOC ── */
+  .toc-wrapper {
+    max-width: 860px;
+    margin: -30px auto 0;
+    padding: 0 24px;
+    position: relative;
+    z-index: 2;
+  }
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px 40px;
+    box-shadow: var(--shadow-lg);
+  }
+  .toc h2 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    letter-spacing: 0.08em;
+  }
+  .toc ol {
+    list-style: none;
+    counter-reset: toc;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 32px;
+  }
+  .toc li { counter-increment: toc; }
+  .toc a {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--text);
+    padding: 6px 0;
+    font-size: 0.92rem;
+    transition: color 0.2s;
+  }
+  .toc a::before {
+    content: counter(toc, decimal-leading-zero);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  .toc a:hover { color: var(--accent); }
+
+  /* ── Main ── */
+  .main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* ── Section ── */
+  .section {
+    margin-bottom: 56px;
+    page-break-inside: avoid;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--border);
+  }
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #fff;
+    background: var(--accent);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .section-num.blender { background: var(--blender); }
+  .section-num.ue5 { background: var(--ue5); }
+  .section-header h2 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+
+  h3 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 32px 0 14px;
+    padding-left: 14px;
+    border-left: 3px solid var(--accent);
+  }
+  h3.blender-accent { border-left-color: var(--blender); }
+  h3.ue5-accent { border-left-color: var(--ue5); }
+
+  h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 22px 0 10px;
+  }
+
+  p, li { font-size: 0.93rem; color: var(--text); }
+  p { margin-bottom: 12px; }
+
+  ul, ol { padding-left: 20px; margin-bottom: 14px; }
+  li { margin-bottom: 6px; }
+  li ul { margin-top: 6px; margin-bottom: 0; }
+
+  strong { font-weight: 600; }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    background: var(--surface-alt);
+    border: 1px solid var(--border-light);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent-dark);
+  }
+
+  pre {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    border-radius: 8px;
+    padding: 18px 22px;
+    overflow-x: auto;
+    margin: 14px 0 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* ── Card ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px 26px;
+    margin: 16px 0;
+    box-shadow: var(--shadow-sm);
+  }
+  .card.blender { border-left: 3px solid var(--blender); background: var(--blender-light); }
+  .card.ue5 { border-left: 3px solid var(--ue5); background: var(--ue5-light); }
+  .card.green { border-left: 3px solid var(--accent); background: var(--accent-light); }
+  .card-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ── Tags ── */
+  .tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 100px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  .tag-green { background: var(--tag-green); color: var(--tag-green-text); }
+  .tag-amber { background: var(--tag-amber); color: var(--tag-amber-text); }
+  .tag-red { background: var(--tag-red); color: var(--tag-red-text); }
+  .tag-blue { background: var(--tag-blue); color: var(--tag-blue-text); }
+
+  /* ── Tables ── */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  thead {
+    background: var(--surface-alt);
+  }
+  th {
+    text-align: left;
+    padding: 11px 16px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    letter-spacing: 0.03em;
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border-light);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(45,90,39,0.02); }
+
+  /* ── Flow Diagram ── */
+  .flow {
+    background: linear-gradient(135deg, #fafaf9, #f0f0eb);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px;
+    margin: 20px 0;
+    text-align: center;
+  }
+  .flow-title {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+  }
+  .flow-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .flow-node {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .flow-node.low { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+  .flow-node.mid { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+  .flow-node.high { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+  .flow-arrow {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+  }
+  .flow-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  /* ── Node Connection Diagram ── */
+  .node-chain {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin: 8px 0;
+    font-size: 0.82rem;
+  }
+  .node-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.76rem;
+    border: 1px solid;
+  }
+  .node-box.input { background: #eff6ff; border-color: #93c5fd; color: #1e40af; }
+  .node-box.process { background: #f0fdf4; border-color: #86efac; color: #166534; }
+  .node-box.output { background: #fef3c7; border-color: #fcd34d; color: #92400e; }
+  .node-arrow { color: var(--text-muted); font-size: 0.9rem; }
+
+  /* ── References ── */
+  .references {
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 2px solid var(--border);
+  }
+  .references h2 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+  }
+  .ref-group { margin-bottom: 20px; }
+  .ref-group h3 {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    border-left: none;
+    padding-left: 0;
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+  .ref-group ul { list-style: none; padding-left: 0; }
+  .ref-group li { margin-bottom: 4px; }
+  .ref-group a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: color 0.2s;
+  }
+  .ref-group a:hover { color: var(--accent-dark); text-decoration: underline; }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 32px 24px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border-light);
+  }
+
+  /* ── Comparison highlight row ── */
+  .highlight-row { background: var(--accent-light) !important; }
+
+  /* ── Print / PDF ── */
+  @media print {
+    html { font-size: 12px; }
+    body { background: #fff; }
+    .cover { min-height: auto; padding: 48px 32px 40px; page-break-after: always; }
+    .toc-wrapper { margin-top: 0; page-break-after: always; }
+    .toc { box-shadow: none; border: 1px solid #ccc; }
+    .section { page-break-inside: avoid; }
+    .table-wrap { box-shadow: none; }
+    .card { box-shadow: none; }
+    a { color: var(--accent) !important; }
+    .flow { page-break-inside: avoid; }
+  }
+
+  @media (max-width: 640px) {
+    .cover h1 { font-size: 1.8rem; }
+    .toc ol { grid-template-columns: 1fr; }
+    .main { padding: 32px 16px 60px; }
+    .section-header h2 { font-size: 1.25rem; }
+    table { font-size: 0.78rem; }
+    th, td { padding: 8px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ COVER ═══════════ -->
+<header class="cover">
+  <span class="cover-badge">Technical Research Report</span>
+  <h1>表面细节技术调研报告</h1>
+  <p class="cover-sub">Blender 贴图技术 &middot; Tissue 插件 &middot; UE5 材质技术 &middot; UE5 曲面细分</p>
+  <div class="cover-meta">
+    <span>2026-03-22</span>
+    <span>&bull;</span>
+    <span>Blender / Unreal Engine 5</span>
+  </div>
+</header>
+
+<!-- ═══════════ TOC ═══════════ -->
+<div class="toc-wrapper">
+  <nav class="toc">
+    <h2>目 录</h2>
+    <ol>
+      <li><a href="#s1">Blender Bump / Normal / Displacement 贴图</a></li>
+      <li><a href="#s2">Blender Tissue 插件</a></li>
+      <li><a href="#s3">UE5 BumpOffset / 法线贴图及相关技术</a></li>
+      <li><a href="#s4">UE5 曲面细分（Tessellation）</a></li>
+      <li><a href="#s5">跨平台技术对比总结</a></li>
+    </ol>
+  </nav>
+</div>
+
+<main class="main">
+
+<!-- ═══════════ SECTION 1 ═══════════ -->
+<section class="section" id="s1">
+  <div class="section-header">
+    <span class="section-num blender">01</span>
+    <h2>Blender 的 Bump、Normal、Displacement 贴图</h2>
+  </div>
+
+  <h3 class="blender-accent">1.1 Bump Map（凹凸贴图）</h3>
+  <div class="card blender">
+    <div class="card-title">原理 <span class="tag tag-green">低开销</span> <span class="tag tag-green">EEVEE 支持</span></div>
+    <p>灰度图（8bit，256 级灰度），Bump 节点通过有限差分法计算高度场梯度，构造新的表面法线。不改变实际几何体，仅修改着色法线。</p>
+  </div>
+  <ul>
+    <li>内存占用最小，性能最优</li>
+    <li>从掠射角观察时容易穿帮（轮廓线仍然平坦）</li>
+    <li><strong>Strength</strong>：0.1&ndash;1.0，控制凹凸强度</li>
+    <li><strong>Distance</strong>：0.01&ndash;0.1（场景相关），控制世界空间尺度</li>
+    <li><strong>适用场景：</strong>皮肤毛孔、微小皱纹、砖缝等细微纹理</li>
+  </ul>
+  <div class="node-chain">
+    <span class="node-box input">Image Texture (Non-Color)</span>
+    <span class="node-arrow">&rarr;</span>
+    <span class="node-box process">Bump Node (Height)</span>
+    <span class="node-arrow">&rarr;</span>
+    <span class="node-box output">Principled BSDF (Normal)</span>
+  </div>
+
+  <h3 class="blender-accent">1.2 Normal Map（法线贴图）</h3>
+  <div class="card blender">
+    <div class="card-title">原理 <span class="tag tag-green">低开销</span> <span class="tag tag-green">EEVEE 支持</span></div>
+    <p>RGB 三通道分别编码 X/Y/Z 方向的法线偏移（R=X+, G=Y+, B=Z+）。紫蓝色外观来源于大部分法线朝 Z+ 方向（切线空间 0.5, 0.5, 1.0）。通常由高模烘焙到低模获得。</p>
+  </div>
+  <ul>
+    <li>比 Bump Map 更精确，能表达更复杂的表面方向变化</li>
+    <li>同样不改变几何体，轮廓线不受影响</li>
+    <li><strong>空间类型：</strong>Tangent Space（最常用）/ Object Space / World Space</li>
+    <li><strong>组合用法：</strong>Normal Map 输出 &rarr; Bump Node (Normal Input)，实现叠加效果</li>
+  </ul>
+  <div class="node-chain">
+    <span class="node-box input">Image Texture (Non-Color)</span>
+    <span class="node-arrow">&rarr;</span>
+    <span class="node-box process">Normal Map Node (Color)</span>
+    <span class="node-arrow">&rarr;</span>
+    <span class="node-box output">Principled BSDF (Normal)</span>
+  </div>
+
+  <h3 class="blender-accent">1.3 Displacement Map（置换贴图）</h3>
+  <div class="card blender">
+    <div class="card-title">原理 <span class="tag tag-red">高开销</span> <span class="tag tag-amber">仅 Cycles</span></div>
+    <p>灰度/高度图驱动顶点实际位移，生成真实几何变形。改变真实几何体 &rarr; 影响轮廓线、可投射阴影、可遮挡其他物体。</p>
+  </div>
+  <ul>
+    <li><strong>Displacement 节点：</strong>标量高度输入，沿法线方向位移</li>
+    <li><strong>Vector Displacement 节点：</strong>RGB/向量输入，可沿任意方向位移</li>
+    <li><strong>Scale</strong>：控制位移幅度（世界空间单位）</li>
+    <li><strong>Midlevel</strong>：默认 0.5，黑=最低时设为 0.0</li>
+    <li><strong>贴图精度：</strong>推荐 16/32-bit 浮点 EXR，8-bit 会产生阶梯伪影</li>
+  </ul>
+
+  <h4>Cycles 位移模式</h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>模式</th><th>几何变形</th><th>凹凸着色</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Bump Only</strong>（默认）</td><td>否</td><td>是</td><td>即使连接 Displacement 节点也不会有几何变化</td></tr>
+        <tr><td><strong>Displacement Only</strong></td><td>是</td><td>否</td><td>细分不足时显得块状/棱角分明</td></tr>
+        <tr class="highlight-row"><td><strong>Displacement and Bump</strong>（推荐）</td><td>是</td><td>是</td><td>大尺度几何位移 + 小尺度凹凸着色，无需极端细分</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="blender-accent">1.4 自适应细分（Adaptive Subdivision）</h3>
+  <div class="card green">
+    <div class="card-title">底层技术</div>
+    <p>基于 OpenSubdiv 库，支持 Catmull-Clark 和 Simple 两种细分模式。Blender 4.x 需开启 Experimental；5.0+ 已内置无需切换。</p>
+  </div>
+  <p><strong>设置步骤：</strong></p>
+  <ol>
+    <li>添加 Subdivision Surface 修改器 &rarr; 启用 Adaptive Subdivision</li>
+    <li>Shader Editor：<code>Height Texture (Non-Color) &rarr; Displacement Node &rarr; Material Output.Displacement</code></li>
+    <li>材质设置 Displacement 模式为 "Displacement and Bump"</li>
+    <li>调整 Render Properties &gt; Subdivision &gt; Dicing Rate（值越小细节越多，默认 1.0 像素）</li>
+  </ol>
+  <ul>
+    <li><strong>全局 Dicing Rate：</strong>Render Properties &gt; Subdivision</li>
+    <li><strong>每对象 Dicing Rate：</strong>Subdivision 修改器上可单独设置</li>
+    <li><strong>Dicing Camera：</strong>可指定活动相机，使细分基于相机距离</li>
+    <li>值 0.5 &asymp; 0.5 像素微多边形，非常精细</li>
+    <li><strong>vs 手动细分：</strong>手动全局均匀加密浪费内存；Adaptive 仅在需要处加密</li>
+  </ul>
+
+  <h3 class="blender-accent">1.5 三者对比</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>特性</th><th>Bump Map</th><th>Normal Map</th><th>Displacement Map</th></tr></thead>
+      <tbody>
+        <tr><td>改变几何体</td><td><span class="tag tag-red">否</span></td><td><span class="tag tag-red">否</span></td><td><span class="tag tag-green">是</span></td></tr>
+        <tr><td>轮廓线影响</td><td>无</td><td>无</td><td>有</td></tr>
+        <tr><td>投射阴影</td><td>不能</td><td>不能</td><td>能</td></tr>
+        <tr><td>自遮蔽</td><td>伪造/有限</td><td>伪造/有限</td><td>真实</td></tr>
+        <tr><td>性能开销</td><td><span class="tag tag-green">低</span></td><td><span class="tag tag-green">低</span></td><td><span class="tag tag-red">高</span></td></tr>
+        <tr><td>内存占用</td><td>小（灰度）</td><td>中（RGB）</td><td>小（灰度）但网格内存大</td></tr>
+        <tr><td>掠射角表现</td><td>差</td><td>较好</td><td>完美</td></tr>
+        <tr><td>EEVEE 支持</td><td><span class="tag tag-green">是</span></td><td><span class="tag tag-green">是</span></td><td><span class="tag tag-red">否</span></td></tr>
+        <tr><td>推荐用途</td><td>微小细节</td><td>中等细节 / 游戏资产</td><td>大尺度变形 / 英雄资产 / 特写</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="blender-accent">1.6 节点连接速查</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>目标</th><th>纹理 &rarr;</th><th>中间节点 &rarr;</th><th>目标</th></tr></thead>
+      <tbody>
+        <tr><td>仅凹凸</td><td>灰度 &rarr; Bump (Height)</td><td>Bump (Normal out) &rarr;</td><td>BSDF Normal</td></tr>
+        <tr><td>仅法线贴图</td><td>RGB &rarr; Normal Map (Color)</td><td>Normal Map (Normal out) &rarr;</td><td>BSDF Normal</td></tr>
+        <tr><td>法线 + 凹凸</td><td>RGB &rarr; Normal Map &rarr; Bump (Normal in);<br>灰度 &rarr; Bump (Height)</td><td>Bump (Normal out) &rarr;</td><td>BSDF Normal</td></tr>
+        <tr><td>位移</td><td>灰度 &rarr; Displacement (Height)</td><td>Displacement (out) &rarr;</td><td>Material Output</td></tr>
+        <tr><td>位移 + 凹凸</td><td>同上 + 凹凸链接到 BSDF Normal</td><td>模式：Displacement and Bump</td><td>两路输出</td></tr>
+        <tr><td>向量位移</td><td>RGB &rarr; Vector Displacement</td><td>Vector Displacement (out) &rarr;</td><td>Material Output</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════ SECTION 2 ═══════════ -->
+<section class="section" id="s2">
+  <div class="section-header">
+    <span class="section-num blender">02</span>
+    <h2>Blender Tissue 插件</h2>
+  </div>
+
+  <h3 class="blender-accent">2.1 概述</h3>
+  <div class="card blender">
+    <div class="card-title">Tissue &mdash; 计算设计工具集</div>
+    <p><strong>作者：</strong>Alessandro Zomparelli（Co-de-iT）<br>
+    <strong>定位：</strong>面向计算设计的免费开源插件，桥接参数化设计与 Blender 网格建模<br>
+    <strong>核心理念：</strong>基于组件的生成式设计 &mdash; 以基础网格拓扑驱动组件的复制和变形<br>
+    <strong>状态：</strong>Blender 2.79+ 内置（需手动启用）| 最新 v0.3.72（2024.10）</p>
+  </div>
+
+  <h3 class="blender-accent">2.2 核心功能</h3>
+
+  <h4>Tessellate（镶嵌/铺砌）</h4>
+  <ul>
+    <li>将 Component 复制到 Generator/Base 的每个面上，自动通过重心/双线性插值映射</li>
+    <li><strong>填充模式：</strong>Quad / Tri / Fan / Patch（细分曲面插值，更平滑有机）</li>
+    <li><strong>Thickness：</strong>沿面法线拉伸，通过顶点组或均匀值控制</li>
+    <li><strong>Merge：</strong>相邻组件边界顶点合并，创建无缝网格</li>
+    <li>支持 Mesh、Curve、Surface、Text、Meta 等输入类型</li>
+    <li><strong>迭代镶嵌：</strong>输出可作为下一次基础，实现分形递归</li>
+  </ul>
+
+  <h4>Dual Mesh（对偶网格）</h4>
+  <ul>
+    <li>三角网格 &rarr; 六边形图案；四边网格 &rarr; 偏移四边网格</li>
+    <li>结合 Wireframe + 细分修改器可产生 Voronoi/蜂窝式有机造型</li>
+  </ul>
+
+  <h4>Polyhedral Wireframe（多面体线框）</h4>
+  <ul>
+    <li>通过拓扑描述内部多面体定义体积对象</li>
+    <li>生成清洁拓扑，适合数字制造（3D 打印）</li>
+    <li>属性：<code>Tissue Node Index</code>、<code>Tissue Edge Index</code>、<code>tissue_is_wireframe</code>、<code>tissue_is_outer</code></li>
+  </ul>
+
+  <h4>Reaction Diffusion（反应扩散）</h4>
+  <div class="card green">
+    <div class="card-title">Gray-Scott 模型</div>
+    <p>两种虚拟化学物质（激活剂/抑制剂）在网格表面沿边扩散并反应。可产生斑点、条纹迷宫、蠕虫图案、脉冲点、珊瑚/指纹纹理。直接在 3D 网格拓扑上运算，适用于任意 3D 表面。</p>
+  </div>
+  <ul>
+    <li><strong>控制参数：</strong>扩散速率、供给率(f)、杀灭率(k)、迭代次数</li>
+    <li><strong>权重集成：</strong>结果顶点组可驱动其他 Tissue 操作，形成反馈循环</li>
+    <li>支持各向异性行为，可基于主应力方向定向结构图案</li>
+  </ul>
+
+  <h4>其他工具</h4>
+  <ul>
+    <li><strong>Convert to Curves：</strong>网格边 &rarr; 曲线 &rarr; 倒角 &rarr; 物理线框/晶格模型</li>
+    <li><strong>Weight Tools：</strong>Formula / Curvature / Area / Harmonic / Boundary Distance / Colors 互转</li>
+    <li><strong>Lattice Along Surface / UV to Mesh / Random Materials</strong></li>
+  </ul>
+
+  <h3 class="blender-accent">2.3 典型工作流</h3>
+  <ol>
+    <li>创建/导入基础网格（通常为细分曲面）</li>
+    <li>创建组件网格（小型重复单元）</li>
+    <li>应用 Tessellate 将组件分布到基础上</li>
+    <li>使用 Dual Mesh 或权重绘制细化图案</li>
+    <li>可选：运行 Reaction Diffusion 产生有机变体</li>
+    <li>转换边为曲线（线框结构）</li>
+    <li>应用材质渲染 / 导出制造</li>
+  </ol>
+
+  <h3 class="blender-accent">2.4 应用领域</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>领域</th><th>应用实例</th></tr></thead>
+      <tbody>
+        <tr><td>建筑可视化</td><td>参数化立面板、穿孔屏风（mashrabiya）、空间桁架、测地穹顶</td></tr>
+        <tr><td>产品设计</td><td>Voronoi/晶格灯罩、珠宝花纹、鞋底纹路</td></tr>
+        <tr><td>3D 打印</td><td>轻量化晶格结构、Voronoi 镂空、互锁瓷砖系统</td></tr>
+        <tr><td>数字艺术/VFX</td><td>有机珊瑚/真菌生长、外星/科幻表面细节</td></tr>
+        <tr><td>纺织模拟</td><td>锁子甲网格、编织/针织图案近似</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="blender-accent">2.5 Tissue vs Geometry Nodes</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>对比项</th><th>Tissue</th><th>Geometry Nodes</th></tr></thead>
+      <tbody>
+        <tr><td>可用性</td><td>插件（内置需启用）</td><td>内置（3.0+）</td></tr>
+        <tr><td>上手难度</td><td><span class="tag tag-green">低</span></td><td><span class="tag tag-amber">中高</span></td></tr>
+        <tr><td>性能</td><td>Python，密集网格慢</td><td>C++，显著更快</td></tr>
+        <tr><td>非破坏性</td><td>半（手动刷新）</td><td>完全实时</td></tr>
+        <tr><td>Tessellate</td><td><span class="tag tag-green">原生强项</span></td><td>需手动搭建节点</td></tr>
+        <tr><td>Reaction Diffusion</td><td><span class="tag tag-green">内置</span></td><td><span class="tag tag-red">无原生</span></td></tr>
+        <tr><td>动画支持</td><td>有限</td><td>完整集成</td></tr>
+        <tr><td>未来方向</td><td>社区维护</td><td>官方核心方向</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>结论：</strong>两者互补。Tissue 适合快速实现特定计算设计工作流（尤其 Tessellate 和 Reaction Diffusion）；Geometry Nodes 更通用、更快、更适合动画，但学习曲线更陡。</p>
+</section>
+
+<!-- ═══════════ SECTION 3 ═══════════ -->
+<section class="section" id="s3">
+  <div class="section-header">
+    <span class="section-num ue5">03</span>
+    <h2>UE5 BumpOffset / 法线贴图及相关技术</h2>
+  </div>
+
+  <h3 class="ue5-accent">3.1 Normal Map</h3>
+  <ul>
+    <li>UE5 中最基础且开销最小的表面细节方法</li>
+    <li><strong>格式：</strong>默认切线空间（蓝紫色），引擎内部重建 Z 分量，BC5 压缩</li>
+    <li><strong>FlattenNormal：</strong>衰减法线强度</li>
+    <li><strong>BlendAngleCorrectedNormals：</strong>正确叠加多层法线（RNM 重定向法线映射）</li>
+    <li><strong>Detail Texturing：</strong>不同 Tiling 缩放的第二层法线叠加</li>
+    <li><strong>性能：</strong>极低，仅一次额外纹理采样</li>
+  </ul>
+
+  <h3 class="ue5-accent">3.2 Bump Offset（简单视差映射）</h3>
+  <div class="card ue5">
+    <div class="card-title">单步视差 <span class="tag tag-green">极低开销</span></div>
+    <p>基于高度图和相机视角计算 UV 偏移。单步光线近似 &mdash; 无自遮蔽、无轮廓校正。适合浅层深度效果。</p>
+  </div>
+  <ul>
+    <li><strong>Height Ratio：</strong>偏移强度</li>
+    <li><strong>Reference Plane：</strong>0&ndash;1，零深度参考面（通常 0.5）</li>
+    <li><strong>重要规则：</strong>所有 PBR 纹理采样必须使用 BumpOffset 输出的偏移 UV</li>
+  </ul>
+
+  <h3 class="ue5-accent">3.3 Iterative Parallax Mapping</h3>
+  <ul>
+    <li>将上一次视差 UV 作为下一次输入，多次迭代</li>
+    <li>法线贴图蓝色通道 &times; 高度值，防止陡坡纹理游移</li>
+    <li><strong>性能：</strong>每次迭代 +5 shader 指令，通常 &le;4 次</li>
+  </ul>
+
+  <h3 class="ue5-accent">3.4 Parallax Occlusion Mapping (POM)</h3>
+  <div class="card ue5">
+    <div class="card-title">光线步进视差 <span class="tag tag-red">高开销</span> <span class="tag tag-blue">自遮蔽</span></div>
+    <p>通过 Ray Marching 穿过高度场找到正确纹理坐标。高度图凸起可遮挡凹陷部分，可选自阴影（第二条光线步进）。</p>
+  </div>
+  <p><strong>UE5 设置步骤：</strong></p>
+  <ol>
+    <li>材质编辑器添加 <code>Parallax Occlusion Mapping</code> 材质函数</li>
+    <li>连接高度图 Texture Object &rarr; Heightmap Texture 输入</li>
+    <li>设置 Height Ratio、Min/Max Steps（16&ndash;128）</li>
+    <li>连接 Pixel Depth Offset 输出</li>
+    <li>可选：部分计算移到 CustomizedUVs 优化</li>
+  </ol>
+  <p><strong>优化：</strong>LOD 距离衰减 / CameraDepthFade 远距禁用 / 简化材质实例用于远 LOD</p>
+
+  <h3 class="ue5-accent">3.5 World Position Offset</h3>
+  <ul>
+    <li>float3 向量加到顶点世界位置，在顶点着色器执行</li>
+    <li>用途：植被风动、雪面变形、交互水面</li>
+    <li>注意：不更新碰撞、阴影可能不匹配、Nanite WPO 需 UE 5.4+</li>
+  </ul>
+
+  <h3 class="ue5-accent">3.6 Material Layer 系统</h3>
+  <ul>
+    <li>各表面类型作为独立 Material Layer 资产</li>
+    <li>Material Layer Blend 定义混合方式（高度/角度/遮罩）</li>
+    <li>辅助函数：HeightLerp、MF_ObjectScale、Triplanar Mapping</li>
+  </ul>
+
+  <h3 class="ue5-accent">3.7 技术对比</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>技术</th><th>GPU 开销</th><th>几何变形</th><th>自遮蔽</th><th>轮廓线</th><th>适用场景</th></tr></thead>
+      <tbody>
+        <tr><td>Normal Map</td><td><span class="tag tag-green">极低</span></td><td>无</td><td>无</td><td>无变化</td><td>所有表面基础细节</td></tr>
+        <tr><td>Bump Offset</td><td><span class="tag tag-green">低</span></td><td>无</td><td>无</td><td>无变化</td><td>远处/浅层深度</td></tr>
+        <tr><td>Iterative Parallax</td><td><span class="tag tag-amber">中</span></td><td>无</td><td>部分</td><td>无变化</td><td>中等深度效果</td></tr>
+        <tr><td>POM</td><td><span class="tag tag-red">高</span></td><td>无</td><td>有 + 自阴影</td><td>无变化</td><td>英雄资产近景</td></tr>
+        <tr><td>World Position Offset</td><td><span class="tag tag-amber">低-中</span></td><td>顶点级</td><td>无</td><td>有变化</td><td>动态效果</td></tr>
+        <tr><td>Nanite Displacement</td><td><span class="tag tag-amber">中</span></td><td>真实几何</td><td>有</td><td>有变化</td><td>大规模场景/地形</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="ue5-accent">3.8 推荐选择指南</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>目标</th><th>推荐技术</th></tr></thead>
+      <tbody>
+        <tr><td>细粒度表面细节（划痕、颗粒）</td><td>Normal Map（Detail 层）</td></tr>
+        <tr><td>浅层深度错觉（砂浆线）</td><td>BumpOffset</td></tr>
+        <tr><td>深度表面浮雕（鹅卵石、深裂缝）</td><td>POM（配合距离衰减）</td></tr>
+        <tr><td>真实几何位移（静态网格）</td><td>Nanite Displacement 或烘焙高模 + Nanite</td></tr>
+        <tr><td>地形细节几何</td><td>Virtual Heightfield Mesh</td></tr>
+        <tr><td>动态顶点动画</td><td>World Position Offset</td></tr>
+        <tr><td>多材质混合</td><td>Material Layers + Height Blend</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════ SECTION 4 ═══════════ -->
+<section class="section" id="s4">
+  <div class="section-header">
+    <span class="section-num ue5">04</span>
+    <h2>UE5 曲面细分（Tessellation）</h2>
+  </div>
+
+  <h3 class="ue5-accent">4.1 历史背景</h3>
+  <div class="card ue5">
+    <div class="card-title">UE4 &rarr; UE5 的范式转变</div>
+    <p><strong>UE4：</strong>DX11 硬件曲面细分（Hull/Domain Shader）+ Tessellation Multiplier + World Displacement<br>
+    <strong>UE5：</strong>完全移除，材质编辑器不再暴露相关引脚</p>
+  </div>
+  <p><strong>移除原因：</strong></p>
+  <ul>
+    <li>与 Nanite GPU 驱动的集群渲染管线不兼容</li>
+    <li>性能不可预测：平坦过度细分、AMD GPU 尤其昂贵</li>
+    <li>UE5 渲染管线围绕 Nanite + Lumen 重构</li>
+  </ul>
+
+  <h3 class="ue5-accent">4.2 Nanite 核心机制</h3>
+  <ul>
+    <li>网格分解为 ~128 三角形集群（Cluster），构建层次化 DAG</li>
+    <li>每集群独立选择 LOD（屏幕空间误差阈值）</li>
+    <li>同一网格不同部分可同时以不同 LOD 渲染</li>
+    <li>小三角形：软件光栅化（Compute Shader）；大三角形：硬件光栅化</li>
+    <li>完全 GPU 驱动，消除 CPU Draw Call 开销</li>
+    <li>Visibility Buffer 替代传统 G-Buffer</li>
+    <li>几何数据按需流式加载</li>
+  </ul>
+  <div class="card green">
+    <div class="card-title">工作流范式转变</div>
+    <p><strong>UE4 思路：</strong>低模 + 运行时细分 + 位移贴图 &rarr; 生成高精度几何<br>
+    <strong>UE5 思路：</strong>DCC 预烘焙高模 &rarr; 导入 &rarr; Nanite 自动 LOD<br>
+    从"运行时生成细节"转变为"导入完整细节，运行时智能简化"</p>
+  </div>
+
+  <h3 class="ue5-accent">4.3 Nanite Tessellation（UE 5.3 &rarr; 5.5）</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>版本</th><th>状态</th><th>能力</th></tr></thead>
+      <tbody>
+        <tr><td><strong>UE 5.2/5.3</strong></td><td><span class="tag tag-amber">实验性</span></td><td>主要针对地形，软件光栅化管线内细分</td></tr>
+        <tr><td><strong>UE 5.4</strong></td><td><span class="tag tag-blue">Beta</span></td><td>扩展到任意 Nanite 静态网格，实时可调</td></tr>
+        <tr><td><strong>UE 5.5</strong></td><td><span class="tag tag-blue">Beta+</span></td><td>性能优化，Lumen GI/反射交互改善</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>启用方式：</strong></p>
+  <pre>// DefaultEngine.ini
+r.Nanite.AllowTessellation=1
+r.Nanite.Tessellation=1</pre>
+  <ol>
+    <li>启用 Nanite Displaced Mesh 插件</li>
+    <li>材质 Detail 面板启用 Tessellation &rarr; 解锁 Displacement 引脚</li>
+  </ol>
+
+  <h3 class="ue5-accent">4.4 替代方案汇总</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>方案</th><th>说明</th><th>局限性</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Nanite Tessellation</strong></td><td>官方推荐，基于高度图位移</td><td>需 UE 5.3+，5.4 为 Beta</td></tr>
+        <tr><td><strong>预细分网格</strong></td><td>DCC 烘焙位移后导入高模</td><td>文件大，Nanite 处理高效</td></tr>
+        <tr><td><strong>World Position Offset</strong></td><td>顶点着色器偏移</td><td>不增加面数，不更新碰撞</td></tr>
+        <tr><td><strong>Virtual Heightfield Mesh</strong></td><td>RVT 高度数据生成地形网格</td><td>仅限地形，GPU 开销大</td></tr>
+        <tr><td><strong>POM</strong></td><td>像素着色器光线步进</td><td>无真实几何，轮廓平坦</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="ue5-accent">4.5 Geometry Script</h3>
+  <ul>
+    <li>UE5 的 Blueprint/Python 程序化几何库（实验/Beta，需手动启用）</li>
+    <li>操作：<code>ApplyPNTessellation</code>、<code>ApplyUniformTessellation</code>、<code>ApplyMeshBoolean</code>、<code>ApplyDisplaceFromTexture</code></li>
+    <li>Catmull-Clark 细分：<strong>仅编辑器模式</strong></li>
+    <li>Spline Mesh：沿样条线变形静态网格（管道/铁轨/道路）</li>
+    <li>DynamicMeshComponent 不兼容 Nanite（可转 StaticMesh 后启用）</li>
+  </ul>
+
+  <h3 class="ue5-accent">4.6 性能对比：Nanite vs 传统曲面细分</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>方面</th><th>UE4 硬件曲面细分</th><th>UE5 Nanite</th></tr></thead>
+      <tbody>
+        <tr><td>三角形生成</td><td>运行时 Hull/Domain Shader</td><td>预计算 LOD，运行时选择</td></tr>
+        <tr><td>LOD 粒度</td><td>每 Draw Call / Patch</td><td>每集群（~128 三角形）</td></tr>
+        <tr><td>过度绘制</td><td><span class="tag tag-red">高</span></td><td><span class="tag tag-green">极少</span></td></tr>
+        <tr><td>CPU 开销</td><td>中等</td><td><span class="tag tag-green">极低</span></td></tr>
+        <tr><td>GPU 开销</td><td>高密度昂贵，AMD 差</td><td>随屏幕像素缩放</td></tr>
+        <tr><td>内存</td><td><span class="tag tag-green">低</span></td><td>较高（流式加载）</td></tr>
+        <tr><td>轮廓质量</td><td>好</td><td><span class="tag tag-green">优秀</span></td></tr>
+        <tr><td>动画支持</td><td>是（每帧重新细分）</td><td>有限（5.4+ WPO）</td></tr>
+        <tr><td>可扩展性</td><td><span class="tag tag-red">高密度时差</span></td><td><span class="tag tag-green">百亿三角形近恒定开销</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>关键差异：</strong>渲染开销随 <strong>屏幕分辨率</strong> 缩放而非 <strong>场景复杂度</strong>，这是 Nanite 的根本架构优势。</p>
+
+  <h3 class="ue5-accent">4.7 UE 5.4/5.5 新特性</h3>
+  <div class="card ue5">
+    <div class="card-title">UE 5.4（2024 中）</div>
+    <ul>
+      <li>Nanite WPO 支持（有性能代价）</li>
+      <li>Nanite 遮罩材质兼容</li>
+      <li>Nanite Displacement 改进 &mdash; 更稳定、更好密度控制</li>
+      <li>Nanite 骨骼网格（实验性）</li>
+      <li>Substrate（前 Strata）材质系统</li>
+    </ul>
+  </div>
+  <div class="card ue5">
+    <div class="card-title">UE 5.5（2024 末 / 2025 初）</div>
+    <ul>
+      <li>Nanite Tessellation 性能优化，减少内存</li>
+      <li>位移几何正确参与 Lumen GI/反射</li>
+      <li>Virtual Shadow Maps 改进</li>
+      <li>Geometry Script 更多操作、Blueprint 集成改善</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════ SECTION 5 ═══════════ -->
+<section class="section" id="s5">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <h2>跨平台技术对比总结</h2>
+  </div>
+
+  <h3>5.1 表面细节技术谱系</h3>
+  <div class="flow">
+    <div class="flow-title">开销 &amp; 质量递增 &rarr;</div>
+    <div class="flow-row">
+      <span class="flow-node low">Normal Map</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node low">Bump Map</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node low">BumpOffset</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node mid">Iter. Parallax</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node mid">POM</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="flow-node high">Displacement</span>
+    </div>
+    <div class="flow-row" style="margin-top:8px;">
+      <span class="flow-label">无几何变形 &mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&rarr; 真实几何变形</span>
+    </div>
+  </div>
+
+  <h3>5.2 程序化建模技术对比</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>需求</th><th>Blender 方案</th><th>UE5 方案</th></tr></thead>
+      <tbody>
+        <tr><td>表面铺砌/镶嵌</td><td>Tissue Tessellate（一键）</td><td>PCG + Instance Mesh</td></tr>
+        <tr><td>有机图案生成</td><td>Tissue Reaction Diffusion</td><td>自定义材质/Niagara（无直接等效）</td></tr>
+        <tr><td>对偶网格/线框</td><td>Tissue Dual Mesh/Polyhedral</td><td>Geometry Script</td></tr>
+        <tr><td>程序化几何</td><td>Geometry Nodes（C++，高效）</td><td>Geometry Script + PCG</td></tr>
+        <tr><td>地形位移</td><td>Adaptive Subdivision + Displacement</td><td>Nanite Tessellation / Virtual Heightfield</td></tr>
+        <tr><td>曲线细分</td><td>Subdivision Surface 修改器</td><td>Geometry Script（仅编辑器）</td></tr>
+        <tr><td>样条线网格</td><td>Curve to Mesh 节点</td><td>Spline Mesh Component</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>5.3 UE5 vs Blender 细分对比</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>对比项</th><th>Blender (Cycles)</th><th>UE5</th></tr></thead>
+      <tbody>
+        <tr><td>自适应细分</td><td>Adaptive Subdivision（成熟）</td><td>Nanite Tessellation（5.4+ Beta）</td></tr>
+        <tr><td>设计思路</td><td>低模 &rarr; 渲染时细分生成高模</td><td>高模导入 &rarr; 运行时智能简化</td></tr>
+        <tr><td>驱动方式</td><td>Shader 节点 + Displacement Map</td><td>材质 + Height Map</td></tr>
+        <tr><td>LOD 管理</td><td>Dicing Rate + 相机距离</td><td>Nanite 集群 LOD</td></tr>
+        <tr><td>平滑细分</td><td>Catmull-Clark / Simple（渲染时）</td><td>Geometry Script（仅编辑器）</td></tr>
+        <tr><td>实时性</td><td>仅 Cycles 离线渲染</td><td>实时（60fps+）</td></tr>
+        <tr><td>程序化生成</td><td>Geometry Nodes（C++）</td><td>Geometry Script + PCG</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>5.4 工作流建议</h3>
+
+  <div class="card blender">
+    <div class="card-title">Blender 离线渲染管线</div>
+    <ul>
+      <li>大尺度变形 &rarr; Adaptive Subdivision + Displacement（推荐 "Displacement and Bump"）</li>
+      <li>中等细节 &rarr; Normal Map（高模烘焙）+ 可叠加 Bump</li>
+      <li>微小细节 &rarr; Bump Map</li>
+      <li>复杂镶嵌图案 &rarr; Tissue Tessellate</li>
+      <li>有机/参数化造型 &rarr; Tissue（快速原型）+ Geometry Nodes（生产/动画）</li>
+      <li>16/32-bit EXR 位移贴图获得最佳效果</li>
+    </ul>
+  </div>
+
+  <div class="card ue5">
+    <div class="card-title">UE5 实时渲染管线</div>
+    <ul>
+      <li>大尺度变形 &rarr; Nanite Tessellation + Displacement（UE 5.4+）</li>
+      <li>英雄资产近景 &rarr; POM（配合 CameraDepthFade）</li>
+      <li>一般表面深度 &rarr; BumpOffset 或 Iterative Parallax</li>
+      <li>基础细节 &rarr; Normal Map（含 Detail 层叠加）</li>
+      <li>动态效果 &rarr; World Position Offset</li>
+      <li>多材质混合 &rarr; Material Layers + Height Blend</li>
+    </ul>
+  </div>
+
+  <div class="card green">
+    <div class="card-title">Blender &rarr; UE5 资产管线</div>
+    <ul>
+      <li>Blender Tissue 生成复杂几何 &rarr; 导出 FBX/glTF &rarr; UE5 启用 Nanite</li>
+      <li>Blender 烘焙 Displacement/Normal Map &rarr; UE5 材质中使用</li>
+      <li>Adaptive Subdivision 效果可通过 Nanite Tessellation 近似还原</li>
+      <li><strong>高模直接导入 + Nanite 是最简单可靠的工作流</strong></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════ REFERENCES ═══════════ -->
+<section class="references">
+  <h2>参考资料</h2>
+
+  <div class="ref-group">
+    <h3>Blender 贴图技术</h3>
+    <ul>
+      <li><a href="https://www.cgdirector.com/normal-vs-displacement-vs-bump-maps/" target="_blank">Normal vs Displacement vs Bump Maps &mdash; CGDirector</a></li>
+      <li><a href="https://docs.blender.org/manual/en/latest/render/materials/components/displacement.html" target="_blank">Displacement &mdash; Blender 5.1 Manual</a></li>
+      <li><a href="https://cgecho.net/how-to-get-true-displacement-with-blender-5-0-adaptive-subdivision/" target="_blank">True Displacement with Blender 5.0 &mdash; CGEcho</a></li>
+      <li><a href="https://texturemap.app/blog/normal-map-vs-bump-map" target="_blank">Normal Map vs Bump Map &mdash; TextureMap.app</a></li>
+      <li><a href="https://www.a23d.co/blog/difference-between-normal-bump-and-displacement-maps/" target="_blank">Difference Between Normal Bump and Displacement Maps &mdash; A23D</a></li>
+    </ul>
+  </div>
+
+  <div class="ref-group">
+    <h3>Blender Tissue</h3>
+    <ul>
+      <li><a href="https://docs.blender.org/manual/en/latest/addons/mesh/tissue.html" target="_blank">Tissue &mdash; Blender 4.2 Manual</a></li>
+      <li><a href="https://github.com/alessandro-zomparelli/tissue" target="_blank">Tissue GitHub &mdash; Alessandro Zomparelli</a></li>
+      <li><a href="https://www.co-de-it.com/code/blender-tissue" target="_blank">Tissue &mdash; Co-de-iT</a></li>
+      <li><a href="https://parametric-architecture.com/revolutionizing-computational-design-with-blender-insights-from-alessandro-zomparelli-and-tissue-add-on/" target="_blank">Revolutionizing Computational Design with Tissue &mdash; Parametric Architecture</a></li>
+      <li><a href="https://extensions.blender.org/add-ons/tissue/" target="_blank">Tissue &mdash; Blender Extensions</a></li>
+    </ul>
+  </div>
+
+  <div class="ref-group">
+    <h3>UE5 材质技术</h3>
+    <ul>
+      <li><a href="https://docs.unrealengine.com/4.27/en-US/RenderingAndGraphics/Materials/HowTo/BumpOffset" target="_blank">Using Bump Offset &mdash; UE Documentation</a></li>
+      <li><a href="https://forums.unrealengine.com/t/tutorial-parallax-occlusion-mapping-pom/52527" target="_blank">POM Tutorial &mdash; Epic Forums</a></li>
+      <li><a href="https://www.gamedeveloper.com/art/creation-of-parallax-occlusion-mapping-pom-in-unreal-engine-5" target="_blank">Creation of POM in UE5 &mdash; Game Developer</a></li>
+      <li><a href="https://dev.epicgames.com/community/learning/tutorials/kyXK/unreal-engine-creation-of-parallax-occlusion-mapping-pom-in-details" target="_blank">POM in Details &mdash; Epic Community</a></li>
+    </ul>
+  </div>
+
+  <div class="ref-group">
+    <h3>UE5 曲面细分</h3>
+    <ul>
+      <li><a href="https://dev.epicgames.com/community/learning/tutorials/bOda/unreal-engine-nanite-tessellation-displacement-ue-5-4-step-by-step-tutorial-any-asset-not-just-landscapes" target="_blank">Nanite Tessellation &amp; Displacement UE 5.4 Tutorial</a></li>
+      <li><a href="https://dev.epicgames.com/community/learning/tutorials/RBvX/unreal-engine-new-in-unreal-5-3-tessellation-displacement-in-nanite-meshes-tutorial" target="_blank">Nanite Tessellation in UE 5.3</a></li>
+      <li><a href="https://dev.epicgames.com/community/learning/tutorials/5J0Y/displacement-and-nanite-tessellation-in-unreal-engine-5" target="_blank">Displacement and Nanite Tessellation Tutorial</a></li>
+      <li><a href="https://dev.epicgames.com/documentation/en-us/unreal-engine/geometry-scripting-reference-in-unreal-engine" target="_blank">Geometry Scripting Reference &mdash; UE5</a></li>
+      <li><a href="http://www.gradientspace.com/tutorials/2022/12/19/geometry-script-faq" target="_blank">Geometry Script FAQ &mdash; Gradientspace</a></li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <p>Surface Detail Techniques Research Report &middot; 2026-03-22</p>
+</footer>
+
+</body>
+</html>
