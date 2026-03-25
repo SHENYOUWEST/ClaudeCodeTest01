@@ -47,6 +47,19 @@ Single-file game (~500 lines). All logic lives in one `<script>` tag:
 ### tictactoe.html
 Standalone 3×3 grid game with score persistence across rounds (in-memory only).
 
+### Developer/game/ (Bauhaus Bullet)
+Multi-file bullet-hell game using Tone.js for generative audio. Modules:
+
+- **main.js** — `BH.Game` singleton: game loop, state (`started`, `gameOver`, `paused`, `isRightHeld`), right-click controls (mousedown/mousemove/mouseup on window), P/Escape pause, audio init
+- **phase.js** — `BH.Phase`: 30s normal / 12s berserk cycle; flags `berserkJustStarted`, `berserkJustEnded` (one-frame signals); `bulletSpeedMultiplier` = 1.4 during berserk (applied per-frame in BulletPool.update)
+- **bullets.js** — `BH.BULLET_DEFS` (dot/line/rect/triangle), `BH.Bullet`, `BH.BulletPool`; speed scaling is per-frame via `speedMultiplier` param, NOT baked at spawn
+- **player.js** — `BH.Player`: maxHp=10; `healAfterBerserk()` adds +5 capped at maxHp; invincibility 1.5s after hit
+- **patterns.js** — `BH.PatternEngine`: 3 movement timelines; all non-center origins use `'random-edge'`; berserk doubles spawn count
+- **audio.js** — `BH.Audio`: Tone.js synth chains (bass→distortion→reverb→masterVol, pulse→pingpong→masterVol); `crossfadeTo()` for smooth transitions; `enterBerserk()`/`exitBerserk()` ramp BPM×1.25, volume +4dB, distortion wet
+- **renderer.js** — `BH.Renderer`: draws background, grid, bullets, player, HUD (10-cell HP bar), pause overlay, game-over screen
+- **score.js** — `BH.Score`: per-second scoring, localStorage high score (`bh_highscore`), `checkHighScore()` returns true on new record
+- **tests/test.html** — in-browser test harness for Player and Phase modules
+
 ## Code Conventions
 
 - All graphics are programmatic Canvas 2D — no image assets
