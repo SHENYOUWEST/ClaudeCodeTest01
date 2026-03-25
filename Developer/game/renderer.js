@@ -1,19 +1,73 @@
 window.BH = window.BH || {};
 
 BH.Renderer = {
+  // Kandinsky-style background geometry (computed once, drawn every frame)
+  _bgShapes: null,
+  _initBg(w, h) {
+    const shapes = [];
+    // Large faint circles (Composition VIII style)
+    shapes.push({ type: 'circle', x: w * 0.2, y: h * 0.3, r: 80, color: 'rgba(232,48,32,0.04)' });
+    shapes.push({ type: 'circle', x: w * 0.75, y: h * 0.6, r: 60, color: 'rgba(0,87,184,0.04)' });
+    shapes.push({ type: 'circle', x: w * 0.5, y: h * 0.15, r: 40, color: 'rgba(255,214,0,0.05)' });
+    // Diagonal lines
+    shapes.push({ type: 'line', x1: w * 0.1, y1: h * 0.9, x2: w * 0.4, y2: h * 0.1, color: 'rgba(245,240,232,0.03)' });
+    shapes.push({ type: 'line', x1: w * 0.6, y1: h * 0.05, x2: w * 0.9, y2: h * 0.85, color: 'rgba(245,240,232,0.03)' });
+    // Small triangles
+    shapes.push({ type: 'tri', x: w * 0.85, y: h * 0.2, s: 30, color: 'rgba(232,48,32,0.03)' });
+    shapes.push({ type: 'tri', x: w * 0.15, y: h * 0.7, s: 25, color: 'rgba(255,214,0,0.04)' });
+    this._bgShapes = shapes;
+    this._bgW = w;
+    this._bgH = h;
+  },
+
+  _drawBg(ctx, w, h, phase) {
+    if (!this._bgShapes || this._bgW !== w || this._bgH !== h) this._initBg(w, h);
+    const time = performance.now() * 0.001;
+    const pulse = phase.isBerserk ? 1.5 : 1.0;
+    for (const s of this._bgShapes) {
+      ctx.save();
+      const drift = Math.sin(time * 0.3 + s.x * 0.01) * 4 * pulse;
+      if (s.type === 'circle') {
+        ctx.beginPath();
+        ctx.arc(s.x + drift, s.y, s.r + Math.sin(time * 0.5) * 5, 0, Math.PI * 2);
+        ctx.fillStyle = s.color;
+        ctx.fill();
+      } else if (s.type === 'line') {
+        ctx.beginPath();
+        ctx.moveTo(s.x1 + drift, s.y1);
+        ctx.lineTo(s.x2 - drift, s.y2);
+        ctx.strokeStyle = s.color;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      } else if (s.type === 'tri') {
+        ctx.beginPath();
+        const sz = s.s + Math.sin(time * 0.4) * 3;
+        ctx.moveTo(s.x + drift, s.y - sz);
+        ctx.lineTo(s.x - sz * 0.6 + drift, s.y + sz * 0.5);
+        ctx.lineTo(s.x + sz * 0.6 + drift, s.y + sz * 0.5);
+        ctx.closePath();
+        ctx.fillStyle = s.color;
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+  },
+
   draw(ctx, game) {
     const { canvas, player, phase, score, bulletPool } = game;
     const w = canvas.width;
     const h = canvas.height;
 
     // === Background ===
-    // Background with smooth transition
     const t = phase.transitionProgress;
-    const r = Math.round(26 + (139 - 26) * t);  // #1a -> #8B
-    const g = Math.round(26 * (1 - t));           // 1a -> 00
-    const b2 = Math.round(26 * (1 - t));          // 1a -> 00
+    const r = Math.round(26 + (139 - 26) * t);
+    const g = Math.round(26 * (1 - t));
+    const b2 = Math.round(26 * (1 - t));
     ctx.fillStyle = `rgb(${r},${g},${b2})`;
     ctx.fillRect(0, 0, w, h);
+
+    // Kandinsky background geometry
+    this._drawBg(ctx, w, h, phase);
 
     // Shockwave on berserk start
     if (phase.shockwave > 0) {
@@ -137,6 +191,77 @@ BH.Renderer = {
         ctx.lineWidth = 2;
         ctx.stroke();
       }
+
+    } else if (b.shape === 'pentagon') {
+      const s = b.size;
+      // Red glow halo
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, s * 1.3, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(232,48,32,0.1)';
+      ctx.fill();
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const angle = (Math.PI * 2 / 5) * i - Math.PI / 2;
+        const px = b.x + Math.cos(angle) * s;
+        const py = b.y + Math.sin(angle) * s;
+        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fillStyle = b.color;
+      ctx.fill();
+
+    } else if (b.shape === 'hexagon') {
+      const s = b.size;
+      // Blue glow halo
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, s * 1.3, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,87,184,0.1)';
+      ctx.fill();
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI * 2 / 6) * i;
+        const px = b.x + Math.cos(angle) * s;
+        const py = b.y + Math.sin(angle) * s;
+        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fillStyle = b.color;
+      ctx.fill();
+
+    } else if (b.shape === 'star') {
+      const s = b.size;
+      // Yellow glow halo
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, s * 1.2, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,214,0,0.12)';
+      ctx.fill();
+      ctx.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const angle = (Math.PI * 2 / 10) * i - Math.PI / 2;
+        const r = i % 2 === 0 ? s : s * 0.4;
+        const px = b.x + Math.cos(angle) * r;
+        const py = b.y + Math.sin(angle) * r;
+        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fillStyle = b.color;
+      ctx.fill();
+
+    } else if (b.shape === 'diamond') {
+      const s = b.size;
+      // White glow halo
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, s * 1.1, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(245,240,232,0.08)';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(b.x, b.y - s);
+      ctx.lineTo(b.x + s * 0.6, b.y);
+      ctx.lineTo(b.x, b.y + s);
+      ctx.lineTo(b.x - s * 0.6, b.y);
+      ctx.closePath();
+      ctx.fillStyle = b.color;
+      ctx.fill();
     }
 
     ctx.restore();

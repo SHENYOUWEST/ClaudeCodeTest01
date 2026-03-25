@@ -1,10 +1,11 @@
 window.BH = window.BH || {};
 
 BH.Score = class Score {
-  constructor() {
+  constructor(mode) {
+    this.mode = mode || 'easy';
     this.value = 0;
     this.survivalTime = 0;
-    this.highScore = parseInt(localStorage.getItem('bh_highscore') || '0', 10);
+    this.highScore = parseInt(localStorage.getItem(`bh_${this.mode}`) || '0', 10);
   }
 
   update(dt, isBerserk, currentHp) {
@@ -19,7 +20,7 @@ BH.Score = class Score {
     const current = Math.floor(this.value);
     if (current > this.highScore) {
       this.highScore = current;
-      localStorage.setItem('bh_highscore', this.highScore.toString());
+      localStorage.setItem(`bh_${this.mode}`, this.highScore.toString());
       return true;
     }
     return false;

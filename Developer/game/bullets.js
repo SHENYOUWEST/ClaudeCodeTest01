@@ -3,8 +3,12 @@ window.BH = window.BH || {};
 BH.BULLET_DEFS = {
   dot:      { color: '#FFD600', radius: 5,  baseSpeed: 270, shape: 'circle' },
   line:     { color: '#E83020', width: 32, height: 3, baseSpeed: 210, shape: 'rect' },
-  rect:     { color: '#1E3FA0', width: 14, height: 14, baseSpeed: 120, shape: 'rect' },
-  triangle: { color: '#F5F0E8', stroke: '#E83020', size: 14, baseSpeed: 240, shape: 'triangle' }
+  rect:     { color: '#0057B8', width: 14, height: 14, baseSpeed: 120, shape: 'rect' },
+  triangle: { color: '#F5F0E8', stroke: '#E83020', size: 14, baseSpeed: 240, shape: 'triangle' },
+  pentagon: { color: '#E83020', size: 12, baseSpeed: 180, shape: 'pentagon' },
+  hexagon:  { color: '#0057B8', size: 10, baseSpeed: 150, shape: 'hexagon' },
+  star:     { color: '#FFD600', size: 14, baseSpeed: 200, shape: 'star' },
+  diamond:  { color: '#F5F0E8', size: 12, baseSpeed: 190, shape: 'diamond' }
 };
 
 BH.Bullet = class Bullet {
@@ -30,7 +34,7 @@ BH.Bullet = class Bullet {
   get hitRadius() {
     if (this.shape === 'circle') return this.radius;
     if (this.shape === 'rect') return Math.max(this.width, this.height) / 2;
-    if (this.shape === 'triangle') return this.size / 2;
+    if (this.shape === 'triangle' || this.shape === 'pentagon' || this.shape === 'hexagon' || this.shape === 'star' || this.shape === 'diamond') return this.size / 2;
     return 5;
   }
 
