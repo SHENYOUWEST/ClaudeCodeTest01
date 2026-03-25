@@ -156,11 +156,7 @@ BH.Game = {
       }
 
       // Pattern timeline
-      if (BH.Audio.initialized) {
-        this.musicTimeMs = BH.Audio.getTimeMs();
-      } else {
-        this.musicTimeMs += dt * 1000;
-      }
+      this.musicTimeMs += dt * 1000;
       const result = BH.PatternEngine.process(
         this.musicTimeMs, this.bulletPool,
         this.canvas.width, this.canvas.height,
